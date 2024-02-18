@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [master, main]
   push:
-    branches: [staging, trying]
+    branches: [master, staging, trying]
 
 concurrency:
   group: lint-${{ github.ref }}
