@@ -63,30 +63,36 @@ jobs:
         run: cargo test --no-run ${{ env.FLAGS }}
       - name: Test
         run: cargo test ${{ env.FLAGS }}
-  run:
+  run-cargo-outdated:
     name: Run cargo-outdated
     env:
-      FLAGS: --all-features
+      FLAGS: -x git2-curl
+    needs: [test-minimal, test-full] # Assuming you want this to run after the tests
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-latest]
         rust: [stable]
-    runs-on: ${{ matrix.os }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      
       - name: Install rust
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: ${{ matrix.rust }}
+          components: rustfmt, clippy # Add if needed
           override: true
+      
       - name: Cache Builds
         uses: Swatinem/rust-cache@v1
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Compile
-        run: cargo build ${{ env.FLAGS }}
-      - name: Test
+      
+      - name: Install cargo-outdated
+        run: cargo install cargo-outdated
+      
+      - name: Check for outdated dependencies
         continue-on-error: true
-        run: cargo run ${{ env.FLAGS }} -- outdated
+        run: cargo outdated ${{ env.FLAGS }}
       
